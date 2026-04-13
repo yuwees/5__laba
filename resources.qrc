@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/images">
+        <!-- Маги -->
+        <file alias="mage_air">mag_res/elf.png</file>
+        <file alias="mage_fire">mag_res/gendalf.png</file>
+        <file alias="mage_water">mag_res/merlin.png</file>
+        <file alias="mage_default">mag_res/mage_default.png</file>
+
+        <!-- Враги -->
+        <file alias="enemy_common">vrag_res/ork.png</file>
+        <file alias="enemy_rare">vrag_res/goblin.png</file>
+        <file alias="enemy_legendary">vrag_res/dragon.png</file>
+        <file alias="enemy_default">vrag_res/enemy_default.png</file>
+    </qresource>
+</RCC>

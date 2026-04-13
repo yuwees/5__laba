@@ -1,0 +1,68 @@
+[
+    {
+        "boots": 5,
+        "code": 1,
+        "cuirass": 15,
+        "element": "Огонь",
+        "health": 200,
+        "helmet": 10,
+        "mana": 150,
+        "name": "Гэндальф",
+        "type": "Mag"
+    },
+    {
+        "boots": 3,
+        "code": 2,
+        "cuirass": 8,
+        "damage": 25,
+        "health": 80,
+        "helmet": 5,
+        "name": "Орк",
+        "rarity": "Обычный",
+        "type": "Vrag"
+    },
+    {
+        "boots": 7,
+        "code": 3,
+        "cuirass": 18,
+        "element": "Вода",
+        "health": 180,
+        "helmet": 12,
+        "mana": 200,
+        "name": "Мерлин",
+        "type": "Mag"
+    },
+    {
+        "boots": 20,
+        "code": 4,
+        "cuirass": 80,
+        "damage": 100,
+        "health": 500,
+        "helmet": 50,
+        "name": "Дракон",
+        "rarity": "Легенда",
+        "type": "Vrag"
+    },
+    {
+        "boots": 6,
+        "code": 5,
+        "cuirass": 12,
+        "element": "Воздух",
+        "health": 150,
+        "helmet": 8,
+        "mana": 120,
+        "name": "Эльф",
+        "type": "Mag"
+    },
+    {
+        "boots": 2,
+        "code": 6,
+        "cuirass": 5,
+        "damage": 15,
+        "health": 40,
+        "helmet": 3,
+        "name": "Гоблин",
+        "rarity": "Редкий",
+        "type": "Vrag"
+    }
+]
