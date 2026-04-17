@@ -15,7 +15,7 @@
 #include <QHeaderView>
 #include <algorithm>
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), previousHoveredRow(-1) {
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     setupUI();
 }
 
@@ -71,15 +71,19 @@ void MainWindow::setupUI() {
     table->horizontalHeader()->setStretchLastSection(false);
     table->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     table->setAlternatingRowColors(false);
+    
     table->setStyleSheet(
-        "QTableWidget { gridline-color: #a0a0a0; }"
+        "QTableWidget { gridline-color: #a0a0a0; outline: none; }"
         "QTableWidget::item { border: 1px solid #a0a0a0; padding: 6px; }"
+        "QTableWidget::item:selected { background-color: #c896ff; color: black; outline: none; }"
+        "QTableWidget::item:focus { outline: none; }"
         "QHeaderView::section { border: 1px solid #a0a0a0; background-color: #e8e8e8; padding: 8px; font-weight: bold; }"
     );
+    table->setFocusPolicy(Qt::NoFocus);
     
     table->verticalHeader()->setVisible(false);
     table->setSelectionBehavior(QAbstractItemView::SelectRows);
-    table->setSelectionMode(QAbstractItemView::NoSelection);
+    table->setSelectionMode(QAbstractItemView::SingleSelection);
     table->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed | QAbstractItemView::AnyKeyPressed);
     table->setMouseTracking(true);
     table->viewport()->setMouseTracking(true);
@@ -91,8 +95,12 @@ void MainWindow::setupUI() {
     connect(btnLoad, &QPushButton::clicked, this, &MainWindow::loadFile);
     connect(btnLoadJSON, &QPushButton::clicked, this, &MainWindow::loadJSON);
     connect(btnSaveJson, &QPushButton::clicked, this, &MainWindow::saveToJson);
+    
+    connect(table, &QTableWidget::cellEntered, this, [this](int row) {
+        table->selectRow(row);
+    });
+    
     connect(table, &QTableWidget::cellClicked, this, &MainWindow::onTableRowClicked);
-    connect(table, &QTableWidget::cellEntered, this, &MainWindow::onTableRowHovered);
     connect(table, &QTableWidget::cellChanged, this, &MainWindow::editCell);
 
     resize(850, 500);
@@ -100,54 +108,14 @@ void MainWindow::setupUI() {
     setMinimumSize(750, 400);
 }
 
-void MainWindow::highlightRow(int row) {
-    if (row < 0 || row >= table->rowCount()) return;
-    for (int col = 0; col < table->columnCount(); ++col) {
-        QTableWidgetItem* item = table->item(row, col);
-        if (item) item->setBackground(QColor("#c896ff"));
-    }
-}
-
-void MainWindow::clearRowHighlight(int row) {
-    if (row < 0 || row >= table->rowCount()) return;
-    QColor defaultColor = (row % 2 == 0) ? QColor("#ffffff") : QColor("#f5f5f5");
-    for (int col = 0; col < table->columnCount(); ++col) {
-        QTableWidgetItem* item = table->item(row, col);
-        if (item) item->setBackground(defaultColor);
-    }
-}
-
-void MainWindow::onTableRowHovered(int row, int /*column*/) {
-    if (previousHoveredRow != -1 && previousHoveredRow != row) {
-        clearRowHighlight(previousHoveredRow);
-    }
-    highlightRow(row);
-    previousHoveredRow = row;
-}
-
-void MainWindow::onTableRowClicked(int row, int /*column*/) {
-    if (previousHoveredRow != -1) {
-        clearRowHighlight(previousHoveredRow);
-        previousHoveredRow = -1;
-    }
-    if (row >= 0 && row < static_cast<int>(persons.size())) {
-        Personazh* selectedPerson = persons[static_cast<size_t>(row)];
-        CraftDialog* dlg = new CraftDialog(selectedPerson, this, imageModeCombo->currentIndex());
-        dlg->setAttribute(Qt::WA_DeleteOnClose);
-        connect(dlg, &CraftDialog::printClicked, this, [this, selectedPerson]() {
-            removePersonazh(selectedPerson);
-        });
-        dlg->show();
-    }
-}
-
 void MainWindow::loadFile() {
     QString filename = QFileDialog::getOpenFileName(this, "Выберите TXT файл", "", "Text files (*.txt)");
     if (filename.isEmpty()) return;
+    
     for (auto p : persons) delete p;
     persons.clear();
-    previousHoveredRow = -1;
     parseFile(filename);
+    refreshTable();
 }
 
 void MainWindow::parseFile(const QString& filename) {
@@ -156,26 +124,38 @@ void MainWindow::parseFile(const QString& filename) {
         QMessageBox::warning(this, "Ошибка", "Не удалось открыть файл");
         return;
     }
+
     QByteArray data = file.readAll();
     file.close();
-    if (data.startsWith("\xEF\xBB\xBF")) data.remove(0, 3);
+    
+    if (data.startsWith("\xEF\xBB\xBF")) {
+        data.remove(0, 3);
+    }
+    
     QString content = QString::fromUtf8(data);
-    if (content.contains(QChar(0xFFFD)) || content.isEmpty()) content = QString::fromLocal8Bit(data);
+    
+    if (content.contains(QChar(0xFFFD)) || content.isEmpty()) {
+        content = QString::fromLocal8Bit(data);
+    }
+    
     QStringList lines = content.split('\n', Qt::SkipEmptyParts);
+    
     for (QString line : lines) {
         line = line.trimmed();
         line.remove('\r');
         if (line.isEmpty()) continue;
+        
         Personazh* p = createFromLine(line);
         if (p) persons.push_back(p);
     }
-    refreshTable();
 }
 
 Personazh* MainWindow::createFromLine(const QString& line) {
     QStringList parts = line.split(',', Qt::SkipEmptyParts);
     if (parts.size() < 8) return nullptr;
+
     for (QString& part : parts) part = part.trimmed();
+
     int code = parts[0].toInt();
     QString name = parts[1];
     QString third = parts[2];
@@ -183,9 +163,11 @@ Personazh* MainWindow::createFromLine(const QString& line) {
     else if (third.toLower() == "вода") third = "Вода";
     else if (third.toLower() == "воздух") third = "Воздух";
     else if (third.toLower() == "земля") third = "Земля";
+    
     int fourth = parts[3].toInt();
     int health = parts[4].toInt();
     Bronya armor(parts[5].toInt(), parts[6].toInt(), parts[7].toInt());
+
     QString lowerThird = third.toLower();
     if (lowerThird.contains("огонь") || lowerThird.contains("вода") || 
         lowerThird.contains("земля") || lowerThird.contains("воздух") ||
@@ -199,10 +181,11 @@ Personazh* MainWindow::createFromLine(const QString& line) {
 void MainWindow::loadJSON() {
     QString filename = QFileDialog::getOpenFileName(this, "Выберите JSON файл", "", "JSON files (*.json)");
     if (filename.isEmpty()) return;
+    
     for (auto p : persons) delete p;
     persons.clear();
-    previousHoveredRow = -1;
     parseJSON(filename);
+    refreshTable();
 }
 
 void MainWindow::parseJSON(const QString& filename) {
@@ -211,19 +194,24 @@ void MainWindow::parseJSON(const QString& filename) {
         QMessageBox::warning(this, "Ошибка", "Не удалось открыть JSON файл");
         return;
     }
+
     QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
     if (!doc.isArray()) {
         QMessageBox::warning(this, "Ошибка", "JSON должен быть массивом");
         return;
     }
+
     QJsonArray arr = doc.array();
     for (const QJsonValue& val : arr) {
         QJsonObject obj = val.toObject();
+        
         int code = obj["code"].toInt();
         QString name = obj["name"].toString();
         int health = obj["health"].toInt();
         Bronya armor(obj["helmet"].toInt(), obj["cuirass"].toInt(), obj["boots"].toInt());
+        
         QString type = obj["type"].toString();
+        
         if (type == "Mag") {
             QString element = obj["element"].toString();
             if (element.toLower() == "огонь") element = "Огонь";
@@ -238,7 +226,6 @@ void MainWindow::parseJSON(const QString& filename) {
             persons.push_back(new VragP(code, name, rarity, damage, health, armor));
         }
     }
-    refreshTable();
 }
 
 void MainWindow::refreshTable() {
@@ -253,20 +240,61 @@ void MainWindow::refreshTable() {
         table->setItem(static_cast<int>(i), 4, new QTableWidgetItem(p->armor.toString()));
     }
     table->blockSignals(false);
-    previousHoveredRow = -1;
+}
+
+void MainWindow::onTableRowClicked(int row, int /*column*/) {
+    table->clearSelection();
+    
+    if (row >= 0 && row < static_cast<int>(persons.size())) {
+        Personazh* selectedPerson = persons[static_cast<size_t>(row)];
+        CraftDialog* dlg = new CraftDialog(selectedPerson, this, imageModeCombo->currentIndex());
+        dlg->setAttribute(Qt::WA_DeleteOnClose);
+        
+        connect(dlg, &CraftDialog::printClicked, this, [this, selectedPerson]() {
+            removePersonazh(selectedPerson);
+        });
+        
+        connect(dlg, &CraftDialog::dataChanged, this, [this]() {
+            refreshTable();
+        });
+        
+        dlg->show();
+    }
 }
 
 void MainWindow::editCell(int row, int column) {
     if (row < 0 || row >= static_cast<int>(persons.size())) return;
+    
     QTableWidgetItem* item = table->item(row, column);
     if (!item) return;
+    
     Personazh* p = persons[static_cast<size_t>(row)];
     QString newValue = item->text();
     bool ok;
     int intValue = newValue.toInt(&ok);
+    
     switch (column) {
         case 0: p->name = newValue; break;
+        case 1:
+            if (auto mag = dynamic_cast<MagP*>(p)) mag->element = newValue;
+            else if (auto vrag = dynamic_cast<VragP*>(p)) vrag->rarity = newValue;
+            break;
+        case 2:
+            if (ok) {
+                if (auto mag = dynamic_cast<MagP*>(p)) mag->mana = intValue;
+                else if (auto vrag = dynamic_cast<VragP*>(p)) vrag->damage = intValue;
+            }
+            break;
         case 3: if (ok) p->health = intValue; break;
+        case 4: {
+            QStringList parts = newValue.split('/');
+            if (parts.size() == 3) {
+                p->armor.helmet = parts[0].trimmed().toInt();
+                p->armor.cuirass = parts[1].trimmed().toInt();
+                p->armor.boots = parts[2].trimmed().toInt();
+            }
+            break;
+        }
     }
 }
 
@@ -282,8 +310,12 @@ void MainWindow::removePersonazh(Personazh* p) {
 void MainWindow::saveToJson() {
     QString filename = QFileDialog::getSaveFileName(this, "Сохранить JSON", "", "JSON (*.json)");
     if (filename.isEmpty()) return;
+    
     QJsonArray arr;
-    for (auto p : persons) arr.append(p->toJson());
+    for (auto p : persons) {
+        arr.append(p->toJson());
+    }
+    
     QFile file(filename);
     if (file.open(QIODevice::WriteOnly)) {
         file.write(QJsonDocument(arr).toJson());
