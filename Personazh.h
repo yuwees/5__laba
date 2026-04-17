@@ -21,7 +21,7 @@ public:
 
     Personazh(int c, const QString& n, int h, const Bronya& a);
     virtual ~Personazh() {}
-    virtual void Craft(class QWidget* parent, int imageMode) const = 0;
+    virtual void Craft(class QWidget* parent, int imageMode) = 0;
     virtual QString type() const = 0;
     virtual QJsonObject toJson() const;
     virtual QString getSpecial1() const = 0;
@@ -35,7 +35,7 @@ public:
 
     MagP(int code, const QString& name, const QString& elem, int manaVal,
          int health, const Bronya& armor);
-    void Craft(QWidget* parent, int imageMode) const override;
+    void Craft(QWidget* parent, int imageMode) override;
     QString type() const override { return "Mag"; }
     QJsonObject toJson() const override;
     QString getSpecial1() const override { return element; }
@@ -49,7 +49,7 @@ public:
 
     VragP(int code, const QString& name, const QString& rar, int dmg,
           int health, const Bronya& armor);
-    void Craft(QWidget* parent, int imageMode) const override;
+    void Craft(QWidget* parent, int imageMode) override;
     QString type() const override { return "Vrag"; }
     QJsonObject toJson() const override;
     QString getSpecial1() const override { return rarity; }
