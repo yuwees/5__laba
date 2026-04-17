@@ -2,10 +2,12 @@ void MainWindow::toggleEditMode() {
     editMode = !editMode;
     
     if (editMode) {
-        table->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed | QAbstractItemView::AnyKeyPressed);
+        // Включаем редактирование
+        table->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed);
         btnEdit->setStyleSheet("QPushButton { background-color: #4CAF50; color: white; font-weight: bold; padding: 8px 12px; border-radius: 4px; }");
         btnEdit->setText("Завершить");
     } else {
+        // Выключаем редактирование
         table->setEditTriggers(QAbstractItemView::NoEditTriggers);
         btnEdit->setStyleSheet("QPushButton { background-color: #FF9800; color: white; font-weight: bold; padding: 8px 12px; border-radius: 4px; }");
         btnEdit->setText("Редактировать");
