@@ -1,6 +1,33 @@
-1,Гэндальф,огонь,150,200,10,15,5
-2,Орк,Обычный,25,80,5,8,3
-3,Мерлин,вода,200,180,12,18,7
-4,Дракон,Легенда,100,500,50,80,20
-5,Эльф,воздух,120,150,8,12,6
-6,Гоблин,Редкий,15,40,3,5,2
+void MainWindow::refreshTable() {
+    table->blockSignals(true);
+    table->setRowCount(static_cast<int>(persons.size()));
+    for (size_t i = 0; i < persons.size(); ++i) {
+        Personazh* p = persons[i];
+        
+        // Имя
+        QTableWidgetItem* item0 = new QTableWidgetItem(p->name);
+        item0->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+        table->setItem(static_cast<int>(i), 0, item0);
+        
+        // Стихия/Редкость
+        QTableWidgetItem* item1 = new QTableWidgetItem(p->getSpecial1());
+        item1->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+        table->setItem(static_cast<int>(i), 1, item1);
+        
+        // Мана/Урон
+        QTableWidgetItem* item2 = new QTableWidgetItem(QString::number(p->getSpecial2()));
+        item2->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+        table->setItem(static_cast<int>(i), 2, item2);
+        
+        // ХП
+        QTableWidgetItem* item3 = new QTableWidgetItem(QString::number(p->health));
+        item3->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+        table->setItem(static_cast<int>(i), 3, item3);
+        
+        // Броня
+        QTableWidgetItem* item4 = new QTableWidgetItem(p->armor.toString());
+        item4->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+        table->setItem(static_cast<int>(i), 4, item4);
+    }
+    table->blockSignals(false);
+}
