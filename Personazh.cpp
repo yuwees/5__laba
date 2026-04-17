@@ -24,7 +24,7 @@ MagP::MagP(int code, const QString& name, const QString& elem, int manaVal,
            int health, const Bronya& armor)
     : Personazh(code, name, health, armor), element(elem), mana(manaVal) {}
 
-void MagP::Craft(QWidget* parent, int imageMode) const {
+void MagP::Craft(QWidget* parent, int imageMode) {
     CraftDialog dlg(this, parent, imageMode);
     dlg.exec();
 }
@@ -41,7 +41,7 @@ VragP::VragP(int code, const QString& name, const QString& rar, int dmg,
              int health, const Bronya& armor)
     : Personazh(code, name, health, armor), rarity(rar), damage(dmg) {}
 
-void VragP::Craft(QWidget* parent, int imageMode) const {
+void VragP::Craft(QWidget* parent, int imageMode) {
     CraftDialog dlg(this, parent, imageMode);
     dlg.exec();
 }
