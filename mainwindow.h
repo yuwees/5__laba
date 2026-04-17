@@ -23,9 +23,9 @@ private slots:
     void loadJSON();
     void saveToJson();
     void onTableRowClicked(int row, int column);
-    void onTableRowHovered(int row, int column);
     void removePersonazh(Personazh* p);
     void editCell(int row, int column);
+    void refreshTable();
 
 private:
     QTableWidget* table;
@@ -34,15 +34,11 @@ private:
     QPushButton* btnSaveJson;
     QComboBox* imageModeCombo;
     std::vector<Personazh*> persons;
-    int previousHoveredRow;
 
     void setupUI();
     void parseFile(const QString& filename);
     void parseJSON(const QString& filename);
-    void refreshTable();
     Personazh* createFromLine(const QString& line);
-    void highlightRow(int row);
-    void clearRowHighlight(int row);
 };
 
 #endif // MAINWINDOW_H
